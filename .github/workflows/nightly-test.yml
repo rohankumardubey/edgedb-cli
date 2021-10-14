@@ -16,7 +16,7 @@ jobs:
 
   nightly-test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 300
     strategy:
       max-parallel: 4
       matrix:
