@@ -13,19 +13,8 @@ env:
   RUST_TEST_THREADS: 1
 
 jobs:
-
-  nightly-test:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 300
-    strategy:
-      max-parallel: 4
-      matrix:
-        os: [ubuntu-latest]
-        test_suite:
-        - compat
-        - install
-        - upgrade
-        - project
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
       - name: Install musl-tools
@@ -36,9 +25,7 @@ jobs:
           toolchain: 1.53.0
           target: x86_64-unknown-linux-musl
           default: true
-      - name: Docker Permissions
-        run: sudo chmod a+rw /var/run/docker.sock
-
+      - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -46,5 +33,39 @@ jobs:
             --target=x86_64-unknown-linux-musl
             --test=github-nightly
             --features=github_nightly
-            --
-            ${{ matrix.test_suite }}::
+            --no-run
+      - name: Extract test executable
+        run: |
+          EXEC=$(ls -t target/x86_64-unknown-linux-musl/debug/deps/ | grep ^github_nightly | grep -v '\..' | head -n 1)
+          mv target/x86_64-unknown-linux-musl/debug/deps/$EXEC target/x86_64-unknown-linux-musl/debug/github_nightly
+      - uses: actions/upload-artifact@v2
+        with:
+          name: nightly-exec
+          path: |
+            target/x86_64-unknown-linux-musl/debug/edgedb
+            target/x86_64-unknown-linux-musl/debug/github_nightly
+
+  nightly-test:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        test_suite:
+        - compat
+        - install
+        - upgrade
+        - project
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: nightly-exec
+      - name: Docker Permissions
+        run: sudo chmod a+rw /var/run/docker.sock
+      - name: Run Tests
+        run: |
+          chmod +x github_nightly edgedb
+          EDGEDB_TEST_BIN_EXE="$(pwd)/edgedb" ./github_nightly ${{ matrix.test_suite }}::
+        shell: bash
