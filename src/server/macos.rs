@@ -739,8 +739,12 @@ pub fn launchctl_status(name: &str, _system: bool, cache: &StatusCache)
             .get_stdout_text()
     });
     let txt = match list {
-        Ok(txt) => txt,
+        Ok(txt) => {
+            println!(">>>>>> {}", txt);
+            txt
+        },
         Err(e) => {
+            println!(">>>>>> {}", e);
             return Service::Inactive {
                 error: format!("cannot determine service status: {:#}", e),
             }
