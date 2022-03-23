@@ -73,7 +73,7 @@ pub fn main(options: Options) -> Result<(), anyhow::Error> {
             task::block_on(commands::info(&options)).into()
         }
         Command::Cloud(c) => {
-            cloud_main(c)
+            cloud_main(c, &options.cloud_options)
         }
     }
 }
