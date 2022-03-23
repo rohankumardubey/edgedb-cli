@@ -2,6 +2,7 @@ use async_std::task;
 
 use crate::cli;
 use crate::cli::directory_check;
+use crate::cloud::main::cloud_main;
 use crate::options::{Options, Command};
 use crate::commands::parser::{Common, MigrationCmd, Migration};
 use crate::commands;
@@ -70,6 +71,9 @@ pub fn main(options: Options) -> Result<(), anyhow::Error> {
         },
         Command::Info => {
             task::block_on(commands::info(&options)).into()
+        }
+        Command::Cloud(c) => {
+            cloud_main(c)
         }
     }
 }

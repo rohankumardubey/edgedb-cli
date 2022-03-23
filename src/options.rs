@@ -15,6 +15,7 @@ use fs_err as fs;
 
 use crate::cli::options::CliCommand;
 use crate::cli;
+use crate::cloud::options::CloudCommand;
 use crate::commands::ExitCode;
 use crate::commands::parser::Common;
 use crate::connect::Connector;
@@ -259,6 +260,9 @@ pub enum Command {
     #[clap(name="_self_install")]
     #[edb(hide=true)]
     _SelfInstall(cli::install::CliInstall),
+    /// Manage EdgeDB Cloud instances
+    #[edb(hide=true)]
+    Cloud(CloudCommand),
 }
 
 #[derive(EdbClap, Clone, Debug)]
